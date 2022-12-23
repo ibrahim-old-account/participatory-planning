@@ -1,0 +1,45 @@
+version: '1.0'
+stages:
+  - prepare
+  - build
+  - store
+  - deploy
+steps:
+  clone:
+    title: Cloning main repository...
+    stage: prepare
+    type: git-clone
+    repo: ibrahimzfe/participatory-planning
+    git: github
+  build:
+    title: Building Docker Image
+    stage: build
+    type: build
+    working_directory: ./
+    image_name: ibrahimzfe/participatory-planning
+    tag: latest
+    dockerfile: Dockerfile
+  store:
+    title: Helm Chart
+    type: helm
+    stage: store
+    working_directory: ./
+    arguments:
+      action: push
+      helm_version: 1.0
+      chart_name: charts/participatory-planning
+      kube_context: ibrahim@ternakhub.id
+  deploy:
+    type: helm
+    stage: deploy
+    working_directory: ./
+    arguments:
+      action: install
+      chart_name: charts/participatory-planning
+      release_name: dev
+      helm_version: 1.0
+      kube_context: ibrahim@ternakhub.id
+      custom_values:
+        - 'image_pullPolicy=Always'
+        - 'image_tag=latest'
+        - 'replicaCount=1'
